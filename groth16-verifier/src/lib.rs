@@ -5,7 +5,7 @@
 //!      2.1 compute f with miller_loop
 //!      2.2 compute final_f with `final_exponentiation`
 //!
-//! The pairing is costly. [`Prove on Pairing`] has figured out a solution: prove and verify for pairing.
+//! The pairing is costly. [`Prove on Pairing`] has figured out a solution: prove and verify pairing.
 //! By precompute miller lines and avoid the `final_exponentiation`, we can reduce the cost of paring.
 //!
 //! We can import the optimize of pairing to Groth16 verifier by recursive proof.
@@ -27,7 +27,7 @@ use ark_bn254::{Bn254, Fr, G1Affine, G1Projective};
 use ark_ec::bn::G2Prepared;
 use ark_ec::pairing::Pairing;
 use ark_ec::{AffineRepr, CurveGroup, VariableBaseMSM};
-use ark_groth16::{PreparedVerifyingKey, Proof};
+use ark_groth16::{Groth16, PreparedVerifyingKey, Proof};
 use ark_relations::r1cs::Result as R1CSResult;
 use on_proving_pairings::prover::PairingProver;
 use on_proving_pairings::setup::PairingPVKey;
@@ -37,13 +37,22 @@ use std::ops::Neg;
 pub struct Groth16Verifier;
 
 impl Groth16Verifier {
-    pub fn verify_proof_with_c_wi(
+    // Params:
+    //  @is_recursive_verifier:
+    //       if true, will leverage power of `prove and verify pairing`.
+    //       if false, will do as same as `Groth16::verify_proof`.
+    pub fn verify_proof(
         pvk: &PreparedVerifyingKey<Bn254>,
         proof: &Proof<Bn254>,
         public_inputs: &[Fr],
+        is_recursive_verifier: bool,
     ) -> R1CSResult<bool> {
         let prepared_inputs = Self::prepare_inputs(pvk, public_inputs)?;
-        Self::verify_proof_with_prepared_inputs(pvk, proof, &prepared_inputs)
+        if is_recursive_verifier {
+            Self::verify_proof_with_recursive_verifier(pvk, proof, &prepared_inputs)
+        } else {
+            Groth16::<Bn254>::verify_proof_with_prepared_inputs(pvk, proof, &prepared_inputs)
+        }
     }
 
     // Porting from `ark_groth16::Groth16::prepare_inputs`
@@ -52,7 +61,6 @@ impl Groth16Verifier {
         public_inputs: &[Fr],
     ) -> R1CSResult<G1Projective> {
         assert_eq!(public_inputs.len() + 1, pvk.vk.gamma_abc_g1.len());
-        // g_ic = pvk.vk.gamma_abc_g1[0] + msm(pvk.vk.gamma_abc_g1[1..], public_inputs)
         let g_ic = pvk.vk.gamma_abc_g1[0].into_group();
 
         let g_ic = g_ic + G1Projective::msm(&pvk.vk.gamma_abc_g1[1..], &public_inputs).unwrap();
@@ -63,14 +71,12 @@ impl Groth16Verifier {
     // Verifier by applying with new paper:
     //
     // Porting from `ark_groth16::Groth16::verify_proof_with_prepared_inputs`
-    pub fn verify_proof_with_prepared_inputs(
+    pub fn verify_proof_with_recursive_verifier(
         pvk: &PreparedVerifyingKey<Bn254>,
         proof: &Proof<Bn254>,
         prepared_inputs: &G1Projective,
     ) -> R1CSResult<bool> {
         let beta_prepared: G2Prepared<ark_bn254::Config> = (pvk.vk.beta_g2.clone().neg()).into();
-        let gamma_g2_neg_pc = pvk.gamma_g2_neg_pc.clone();
-        let delta_g2_neg_pc = pvk.delta_g2_neg_pc.clone();
         let sum_ai_abc_gamma = prepared_inputs.into_affine();
 
         // Pi
@@ -84,7 +90,7 @@ impl Groth16Verifier {
         let b = vec![
             pvk.gamma_g2_neg_pc.clone(),
             pvk.delta_g2_neg_pc.clone(),
-            beta_prepared.clone(),
+            (-pvk.vk.beta_g2).into(),
             proof.b.into(),
         ];
 
@@ -106,7 +112,6 @@ impl Groth16Verifier {
         );
 
         // verify
-        PairingVerifier::verify(&pairing_pvk, final_f);
-        Ok(true)
+        Ok(PairingVerifier::verify(&pairing_pvk, final_f))
     }
 }

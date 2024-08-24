@@ -20,5 +20,6 @@ fn test_groth16_verifier() {
     );
 
     // 3. verifier with new one
-    assert!(Groth16Verifier::verify_proof_with_c_wi(&pvk, &proof, &pi).unwrap());
+    assert!(Groth16Verifier::verify_proof(&pvk, &proof, &pi, false).unwrap());
+    assert!(Groth16Verifier::verify_proof(&pvk, &proof, &pi, true).unwrap());
 }
