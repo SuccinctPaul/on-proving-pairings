@@ -1,8 +1,13 @@
 [package]
 name = "groth16_verifier"
-version = "0.1.0"
-edition = "2021"
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+authors = { workspace = true }
+repository = { workspace = true }
+categories = { workspace = true }
 description = "Groth16 verifier with `on proving pairing`"
+
 
 [dependencies]
 ark-ff = {workspace = true }

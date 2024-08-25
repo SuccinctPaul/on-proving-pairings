@@ -8,9 +8,7 @@ use num_traits::{One, ToPrimitive};
 use rand_chacha::rand_core::SeedableRng;
 use rand_chacha::ChaCha20Rng;
 use std::ops::Deref;
-use std::str::FromStr;
 
-// c and wi,
 // satisfying c^lambda = f * wi
 pub struct LambdaResidues {
     pub c: Fq12,
@@ -20,20 +18,14 @@ pub struct LambdaResidues {
 impl LambdaResidues {
     // Computing λ residues over BN curve
     // Input:
-    //      f: output of a Miller loop
+    //      f: output of a Miller loop.
+    //          It's always be r-th and m′-th residue, but it might not be a cubic residue.
     // Output:
     //      c and wi,
     //      satisfying c^lambda = f * wi
     //
     // Ref: Algorithm 5 of [On Proving Pairings](https://eprint.iacr.org/2024/640.pdf)
-    pub fn compute_lambda_residues(f: Fq12) -> Self {
-        // let r = BigUint::from_str(
-        //     "21888242871839275222246405745257275088548364400416034343698204186575808495617",
-        // )
-        // .unwrap();
-        // let lambda = BigUint::from_str(
-        //     "10486551571378427818905133077457505975146652579011797175399169355881771981095211883813744499745558409789005132135496770941292989421431235276221147148858384772096778432243207188878598198850276842458913349817007302752534892127325269"
-        // ).unwrap();
+    pub fn finding_c(f: Fq12) -> Self {
         let s = 3_u32;
         let exp = MODULUS.pow(12_u32) - 1_u32;
         let h = &exp / params::R.deref();
@@ -46,6 +38,7 @@ impl LambdaResidues {
         let mut prng = ChaCha20Rng::seed_from_u64(0);
         let cofactor_cubic = 3_u32.pow(s - 1) * &t;
 
+        // Find C. See more: 4.3.2 Finding c
         // make f is r-th residue, but it's not cubic residue
         assert_eq!(f.pow(h.to_u64_digits()), ark_bn254::Fq12::ONE);
         assert_ne!(f.pow(cofactor_cubic.to_u64_digits()), ark_bn254::Fq12::ONE);
@@ -100,7 +93,7 @@ impl LambdaResidues {
         // d-th (cubic) root, say c
         let c = Self::tonelli_shanks_cubic(f3, w, s, t, k);
         assert_ne!(c, ark_bn254::Fq12::ONE);
-        assert_eq!(c.pow(params::LAMBDA.deref().to_u64_digits()), f * wi);
+        assert_eq!(c.pow(params::LAMBDA.clone().to_u64_digits()), f * wi);
 
         Self { c, wi }
     }
@@ -156,7 +149,7 @@ impl LambdaResidues {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::params::{LAMBDA, MODULUS};
+    use crate::params::MODULUS;
     use std::ops::Deref;
 
     use ark_ff::{Field, One};
@@ -164,9 +157,9 @@ mod test {
     use num_bigint::BigUint;
 
     use crate::params;
+
     use rand::SeedableRng;
     use rand_chacha::ChaCha20Rng;
-    use std::str::FromStr;
 
     #[test]
     fn test_compute_c_wi() {

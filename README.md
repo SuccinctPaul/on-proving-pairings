@@ -38,5 +38,7 @@ ark-poly = { git = "https://github.com/SuccinctPaul/arkworks-algebra.git",  bran
 
 ## Reference
 * [On Proving Pairings](https://eprint.iacr.org/2024/640)
-* [Optimal Pairings](https://eprint.iacr.org/2008/096)
+* [The Realm of the Pairings](https://eprint.iacr.org/2013/722)
 * [A remark on the computation of cube roots in finite fields](https://eprint.iacr.org/2009/457)
+* [How we implemented the BN254 Ate pairing in lambdaworks](https://blog.lambdaclass.com/how-we-implemented-the-bn254-ate-pairing-in-lambdaworks/)
+* [See More Implements References](REFERENCES.md)
