@@ -31,18 +31,18 @@ pub static R_INV: Lazy<BigUint> = Lazy::new(|| {
 });
 
 pub const H: Lazy<BigUint> = Lazy::new(||
-    // h = (p^12 - 1) / r
-    MODULUS.deref().pow(12).sub(BigUint::one()).div(R.clone()));
+// h = (p^12 - 1) / r
+MODULUS.deref().pow(12).sub(BigUint::one()).div(R.clone()));
 
 pub const D: Lazy<BigUint> = Lazy::new(||
-    // d = gcd(m, h) = 3
-    BigUint::from_i8(3).unwrap());
+// d = gcd(m, h) = 3
+BigUint::from_i8(3).unwrap());
 pub const M: Lazy<BigUint> = Lazy::new(||
-                                           // m = λ / r
-    LAMBDA.deref().div(R.clone()));
+// m = λ / r
+LAMBDA.deref().div(R.clone()));
 pub const M_DASH: Lazy<BigUint> = Lazy::new(||
-    // m' = m/d
-    M.clone().div(D.clone()));
+// m' = m/d
+M.clone().div(D.clone()));
 
 // e = 6X + 2;
 pub static E: Lazy<BigUint> = Lazy::new(|| {

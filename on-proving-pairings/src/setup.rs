@@ -4,6 +4,7 @@ use ark_ec::bn::{G1Prepared, G2Prepared};
 use ark_ec::pairing::Pairing;
 use ark_ff::Field;
 
+// To prove and verify the pairing, need precompute the lambda residues over BN curve.
 pub struct PairingPVKey {
     // f, then base line
     pub f: Fq12,
