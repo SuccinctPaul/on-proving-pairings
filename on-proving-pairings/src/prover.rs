@@ -15,8 +15,106 @@ use std::ops::Neg;
 pub struct PairingProver;
 
 impl PairingProver {
-    // Prove pairing with duality pairing.
-    // todo
+    // Prove duality pairing.
+    // Will generate proof: final_f to prove `e(P1,Q1)=e(P2,Q2)` <==> `e(P1,Q1)*e(P2,-Q2)=1`
+    //
+    // Note: here only supports to prove on `fflonk-verifier's pairing`,
+    //          where (Q1,Q2) are fixed
+    //
+    // params:
+    //  @eval_points: [P1,P2]. which maps with fixed [Q1,Q2]
+    //  @lines: precompute miller lines for Qi. Only support fixed Qi.
+    //          Base line: [Q1,Q2]
+    //  @c: c^lambda = f*w^i
+    //  @c_inv: inverse of c
+    //
+    // verify c^lambda = f * wi, namely c_inv^lambda * f * wi = 1
+    pub fn prove_dual_pairing(
+        eval_points: Vec<G1Affine>,
+        lines: &Vec<G2Prepared<ark_bn254::Config>>,
+        pvk: &PairingPVKey,
+    ) -> Fq12 {
+        assert_eq!(eval_points.len(), 2, "Should contains 2 G1Affine: P1,P2");
+        assert_eq!(lines.len(), 2, "Only 2 precompute lines for Q1,Q2");
+        assert_eq!(pvk.c * pvk.c_inv, Fq12::ONE, "Check if c·c^−1 = 1");
+
+        // constants: 1/2
+        // TODO: one_half
+        let two_inv = ark_bn254::Fq::one().double().inverse().unwrap();
+
+        // 1. f = c_inv
+        let mut f = pvk.c_inv;
+
+        let mut lines_iters = lines
+            .iter()
+            .map(|item| item.ell_coeffs.iter())
+            .collect::<Vec<_>>();
+
+        // 2. miller loop part, 6x + 2
+        for i in (1..ark_bn254::Config::ATE_LOOP_COUNT.len()).rev() {
+            let bit = ark_bn254::Config::ATE_LOOP_COUNT[i - 1];
+
+            // 2.1 double: f = f * f
+            f = f.square();
+
+            // 2.2 mul c
+            //  f = f * c_inv, if digit == 1
+            //  f = f * c, if digit == -1
+            f = if 1 == bit {
+                f * pvk.c_inv
+            } else if bit == -1 {
+                f * pvk.c
+            } else if bit == 0 {
+                f
+            } else {
+                panic!("bit is not in (-1,1), bit={bit}");
+            };
+
+            // 2.3 accumulate double lines (fixed and non-fixed)
+            // 2.3.1(fixed) f = f * double_line_Q(P). fixed points: P1, P2, P3
+            for (line_i, pi) in lines_iters.iter_mut().zip(eval_points.iter()) {
+                let line_i_0 = line_i.next().unwrap();
+                Bn254::ell(&mut f, line_i_0, pi);
+            }
+
+            if bit == 1 || bit == -1 {
+                // 2.4 accumulate add lines (fixed and non-fixed)
+                // 2.4.1(fixed) f = f * add_line_eval. fixed points: P1, P2, P3
+                for (line_i, pi) in lines_iters.iter_mut().zip(eval_points.iter()) {
+                    let line_i_1 = line_i.next().unwrap();
+                    Bn254::ell(&mut f, line_i_1, pi);
+                }
+            }
+        }
+
+        // 3. f = f * c_inv^p * c^{p^2}
+        f = f
+            * pvk.c_inv.pow(params::MODULUS.to_u64_digits())
+            * pvk.c.pow(params::MODULUS.pow(2).to_u64_digits());
+
+        // 4. scale f: f = f * wi .
+        f = f * pvk.wi;
+
+        // 5 add lines (fixed and non-fixed)
+        // 5.1(fixed) f = f * add_line_eval. fixed points: P1, P2
+        // update f (frobenius map): f = f * add_line_eval([p])
+
+        for (line_i, pi) in lines_iters.iter_mut().zip(eval_points.iter()) {
+            let line_i_1 = line_i.next().unwrap();
+            Bn254::ell(&mut f, line_i_1, pi);
+        }
+
+        // 6. add lines (fixed and non-fixed)
+        // 6.1(fixed) f = f * add_line_eval. fixed points: P1, P2
+        // update f (frobenius map): f = f * add_line_eval([-p^2])
+        for (line_i, pi) in lines_iters.iter_mut().zip(eval_points.iter()) {
+            let line_i_1 = line_i.next().unwrap();
+            Bn254::ell(&mut f, line_i_1, pi);
+        }
+
+        // return final_f
+        f
+    }
 
     // Prove quadratic pairing.
     // Will generate proof: final_f to prove `e(P1,Q1)*e(P2,Q2)*e(P3,Q3)*e(P4,Q4)=1`
@@ -123,7 +221,7 @@ impl PairingProver {
         // 4. scale f: f = f * wi .
         f = f * pvk.wi;
 
-        // 5 add lines (fixed and non-fixed)
+        // 5. one-time frobenius map on fixed and non-fixed lines
         // 5.1(fixed) f = f * add_line_eval. fixed points: P1, P2, P3
         for (line_i, pi) in lines_iters.iter_mut().zip(eval_points.iter()) {
             let line_i_1 = line_i.next().unwrap();
@@ -139,7 +237,7 @@ impl PairingProver {
         // 5.4(non-fixed) evaluation add_lin. non-fixed points: P4
         Bn254::ell(&mut f, &add_line, &P4);
 
-        // 6. add lines (fixed and non-fixed)
+        // 6. two-times frobenius map on fixed and non-fixed lines
         // 6.1(fixed) f = f * add_line_eval. fixed points: P1, P2, P3
         for (line_i, pi) in lines_iters.iter_mut().zip(eval_points.iter()) {
             let line_i_1 = line_i.next().unwrap();

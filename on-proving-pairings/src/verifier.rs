@@ -6,7 +6,7 @@ use ark_ff::Field;
 pub struct PairingVerifier;
 
 impl PairingVerifier {
-    pub fn verify(pvk: &PairingPVKey, final_f: Fq12) {
+    pub fn verify(pvk: &PairingPVKey, final_f: Fq12) -> bool {
         let p_pow3 = params::MODULUS.pow(3_u32);
         let lambda = params::LAMBDA.clone();
         let (exp, sign) = if lambda > p_pow3 {
@@ -23,6 +23,7 @@ impl PairingVerifier {
 
         let p_pow3 = params::MODULUS.pow(3_u32);
         assert_eq!(hint, pvk.c.pow(p_pow3.to_u64_digits()), "hint is wrong");
-        assert_eq!(final_f, hint, "final_f not equal hint");
+        // assert_eq!(final_f, hint, "final_f not equal hint");
+        final_f == hint
     }
 }

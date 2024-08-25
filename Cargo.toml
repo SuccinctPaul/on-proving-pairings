@@ -33,10 +33,10 @@ itertools = "0.10.5"
 
 
 [patch.crates-io]
-ark-ff = { git = "https://github.com/SuccinctPaul/arkworks-algebra.git",  branch = "bitvm"}
-ark-ec = { git = "https://github.com/SuccinctPaul/arkworks-algebra.git",  branch = "bitvm"}
-ark-serialize = { git = "https://github.com/SuccinctPaul/arkworks-algebra.git",  branch = "bitvm"}
-ark-poly = { git = "https://github.com/SuccinctPaul/arkworks-algebra.git",  branch = "bitvm"}
+ark-ff = { git = "https://github.com/SuccinctPaul/arkworks-algebra.git",  branch = "v0.4.2"}
+ark-ec = { git = "https://github.com/SuccinctPaul/arkworks-algebra.git",  branch = "v0.4.2"}
+ark-serialize = { git = "https://github.com/SuccinctPaul/arkworks-algebra.git",  branch = "v0.4.2"}
+ark-poly = { git = "https://github.com/SuccinctPaul/arkworks-algebra.git",  branch = "v0.4.2"}
 
 
 [profile.release]
