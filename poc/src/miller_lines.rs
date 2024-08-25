@@ -188,7 +188,11 @@ mod test {
 
     use super::*;
     use crate::{
+<<<<<<<< HEAD:on-proving-pairings/src/miller_lines.rs
         dev::{g1, g2},
+========
+        constants::{g1, g2},
+>>>>>>>> d389fd5 (feat:  add setup/prove/verify concept and refactor the project structure  (#5)):poc/src/miller_lines.rs
         params::E,
     };
 

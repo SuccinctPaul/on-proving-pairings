@@ -296,7 +296,11 @@ impl NativeMillerLoop {
 #[cfg(test)]
 mod test {
     use super::*;
+<<<<<<<< HEAD:on-proving-pairings/src/optimal_ate.rs
     use crate::dev;
+========
+    use crate::constants;
+>>>>>>>> d389fd5 (feat:  add setup/prove/verify concept and refactor the project structure  (#5)):poc/src/optimal_ate.rs
     use ark_bn254::{Bn254, G1Affine, G2Affine};
     use ark_ec::pairing::Pairing;
     use ark_ec::{AffineRepr, CurveGroup};

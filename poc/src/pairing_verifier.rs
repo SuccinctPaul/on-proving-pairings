@@ -8,8 +8,11 @@ use rand::SeedableRng;
 use rand_chacha::ChaCha20Rng;
 use std::str::FromStr;
 
+<<<<<<<< HEAD:on-proving-pairings/src/pairing_verify.rs
 use crate::lambda_residues::LambdaResidues;
 use crate::params::MODULUS;
+========
+>>>>>>>> d389fd5 (feat:  add setup/prove/verify concept and refactor the project structure  (#5)):poc/src/pairing_verifier.rs
 use crate::utils::biguint_to_naf;
 use crate::{
     miller_lines::MillerLines,
@@ -170,7 +173,11 @@ mod test {
 
     use crate::lambda_residues::LambdaResidues;
     use crate::optimal_ate::NativeMillerLoop;
+<<<<<<<< HEAD:on-proving-pairings/src/pairing_verify.rs
     use crate::{dev, params};
+========
+    use crate::{constants, params};
+>>>>>>>> d389fd5 (feat:  add setup/prove/verify concept and refactor the project structure  (#5)):poc/src/pairing_verifier.rs
 
     #[test]
     fn test_pairing_verify_native() {
