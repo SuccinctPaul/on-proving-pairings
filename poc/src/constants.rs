@@ -17,9 +17,3 @@ pub const G2_GENERATOR_Y: Fq2 = Fq2::new(
 // This G1 and G2 are used by line_precom
 pub const g1: G1Affine = G1Affine::new_unchecked(G1_GENERATOR_X, G1_GENERATOR_Y);
 pub const g2: G2Affine = G2Affine::new_unchecked(G2_GENERATOR_X, G2_GENERATOR_Y);
-
-// g1_gen
-// pub const g1: G1Affine =
-//     G1Affine::new_unchecked(ark_bn254::g1::G1_GENERATOR_X, ark_bn254::g1::G1_GENERATOR_Y);
-// pub const g2: G2Affine =
-//     G2Affine::new_unchecked(ark_bn254::g2::G2_GENERATOR_X, ark_bn254::g2::G2_GENERATOR_Y);

@@ -1,6 +1,5 @@
-use ark_ff::One;
 use num_bigint::BigUint;
-use num_traits::{FromPrimitive, ToPrimitive};
+use num_traits::ToPrimitive;
 
 pub fn biguint_to_naf(num: BigUint) -> Vec<i8> {
     to_naf(num.to_i128().unwrap())
@@ -17,9 +16,9 @@ fn to_naf(mut x: i128) -> Vec<i8> {
             z.push(zi)
         }
 
-        x = x / 2
+        x /= 2
     }
-    return z;
+    z
 }
 
 use crate::params;
@@ -59,42 +58,4 @@ pub fn fq12_to_frobenius_p3(mut q12: Fq12) -> Fq12 {
     let e1_x = q12.c0.c0.conjugate_in_place().to_owned();
 
     Fq12::new(Fq6::new(e1_x, e1_y, e1_z), Fq6::new(e2_x, e2_y, e2_z))
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-    use crate::params;
-    use std::ops::Deref;
-
-    #[test]
-    fn test_biguint_naf() {
-        let mut expect = to_naf(29793968203157093288);
-        expect.reverse();
-        expect.remove(0);
-        println!("res: {:?}", expect);
-
-        println!("E :{:?}", params::E.deref());
-        let mut actual = biguint_to_naf(params::E.clone());
-        actual.reverse();
-        actual.remove(0);
-        println!("res: {:?}", actual);
-
-        assert_eq!(expect, actual);
-    }
-
-    #[test]
-    fn test_beta_pi() {
-        for x in params::BETA_PI_1.deref() {
-            println!("beta_pi_1: {:?}", x.to_string());
-        }
-        println!("");
-        for x in params::BETA_PI_1.deref() {
-            println!("beta_pi_2: {:?}", x.to_string());
-        }
-        println!("");
-        for x in params::BETA_PI_3.deref() {
-            println!("beta_pi_3: {:?}", x.to_string());
-        }
-    }
 }

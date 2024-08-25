@@ -1,9 +1,14 @@
-[package]
-name = "prove-on-pairing"
-version = "0.1.0"
-edition = "2021"
+[workspace]
+members = [
+    "poc",
+    "on-proving-pairings",
+    "groth16-verifier",
+]
 
-[dependencies]
+
+[workspace.dependencies]
+on-proving-pairings = {path = "on-proving-pairings" }
+
 ark-ff = { version = "0.4.0", default-features = false }
 ark-ec = { version = "0.4.0", default-features = false }
 ark-serialize = { version = "0.4.0", default-features = false, features = [ "derive" ] }
@@ -11,7 +16,7 @@ ark-poly = { version = "0.4.0", default-features = false }
 ark-std = { version = "0.4.0", default-features = false }
 ark-relations = { version = "0.4.0", default-features = false }
 ark-crypto-primitives = { version = "0.4.0", default-features = false, features = ["snark", "sponge"] }
-
+ark-groth16 = "0.4.0"
 
 num-bigint = "0.4.4"
 num-traits = "0.2.18"
@@ -19,7 +24,44 @@ once_cell = "1.19.0"
 ark-bn254 = { version = "0.4.0", features = ["curve"] }
 rand = "0.8.5"
 rand_chacha = "0.3.1"
+itertools = "0.10.5"
 
 
-[dev-dependencies]
-ark-groth16 = "*"
+
+
+
+
+
+[patch.crates-io]
+ark-ff = { git = "https://github.com/SuccinctPaul/arkworks-algebra.git",  branch = "bitvm"}
+ark-ec = { git = "https://github.com/SuccinctPaul/arkworks-algebra.git",  branch = "bitvm"}
+ark-serialize = { git = "https://github.com/SuccinctPaul/arkworks-algebra.git",  branch = "bitvm"}
+ark-poly = { git = "https://github.com/SuccinctPaul/arkworks-algebra.git",  branch = "bitvm"}
+
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+incremental = true
+panic = 'abort'
+
+[profile.bench]
+opt-level = 3
+debug = false
+rpath = false
+lto = "thin"
+incremental = true
+debug-assertions = false
+
+[profile.dev]
+opt-level = 0
+panic = 'abort'
+
+[profile.test]
+opt-level = 3
+lto = "thin"
+incremental = true
+debug-assertions = true
+debug = true
+
+
