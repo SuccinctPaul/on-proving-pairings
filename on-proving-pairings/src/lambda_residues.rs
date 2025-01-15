@@ -63,13 +63,16 @@ impl LambdaResidues {
         assert_eq!(w.pow(h.to_u64_digits()), ark_bn254::Fq12::ONE);
 
         // just two option, w and w^2, since w^3 must be cubic residue, leading f*w^3 must not be cubic residue
-        let mut wi = w;
+        let mut wi = ark_bn254::Fq12::ONE;
         if (f * wi).pow(cofactor_cubic.to_u64_digits()) != ark_bn254::Fq12::ONE {
-            assert_eq!(
-                (f * w * w).pow(cofactor_cubic.to_u64_digits()),
-                ark_bn254::Fq12::ONE
-            );
-            wi = w * w;
+            wi *= w;
+            if (f * wi).pow(cofactor_cubic.to_u64_digits()) != ark_bn254::Fq12::ONE {
+                wi *= w;
+                assert_eq!(
+                    (f * wi).pow(cofactor_cubic.to_u64_digits()),
+                    ark_bn254::Fq12::ONE
+                );
+            }
         }
         assert_eq!(wi.pow(h.to_u64_digits()), ark_bn254::Fq12::ONE);
 
@@ -210,13 +213,16 @@ mod test {
         assert_eq!(w.pow(h.to_u64_digits()), ark_bn254::Fq12::ONE);
 
         // just two option, w and w^2, since w^3 must be cubic residue, leading f*w^3 must not be cubic residue
-        let mut wi = w;
+        let mut wi = ark_bn254::Fq12::ONE;
         if (f * wi).pow(cofactor_cubic.to_u64_digits()) != ark_bn254::Fq12::ONE {
-            assert_eq!(
-                (f * w * w).pow(cofactor_cubic.to_u64_digits()),
-                ark_bn254::Fq12::ONE
-            );
-            wi = w * w;
+            wi *= w;
+            if (f * wi).pow(cofactor_cubic.to_u64_digits()) != ark_bn254::Fq12::ONE {
+                wi *= w;
+                assert_eq!(
+                    (f * wi).pow(cofactor_cubic.to_u64_digits()),
+                    ark_bn254::Fq12::ONE
+                );
+            }
         }
         assert_eq!(wi.pow(h.to_u64_digits()), ark_bn254::Fq12::ONE);
 
